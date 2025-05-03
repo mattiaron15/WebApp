@@ -1,0 +1,48 @@
+[{
+  "_id": {
+    "$oid": "68138f1b5fc37f3514f725db"
+  },
+  "username": "shynix",
+  "email": "mattiaronica10@gmail.com",
+  "bio": "prova",
+  "profilePicture": "https://cdn.discordapp.com/attachments/907939074822791188/1364592390689787916/IMG_2142.jpg?ex=6814c732&is=681375b2&hm=7d322a334dd20ef280dbc13ad963491d0797d3cfd24fc8cd361ad06b14b19407&",
+  "followers": [
+    {
+      "$oid": "681390084ce9c33c39200b0a"
+    }
+  ],
+  "following": [],
+  "isAdmin": false,
+  "isApiUser": true,
+  "createdAt": {
+    "$date": "2025-05-01T15:11:23.636Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-01T15:23:01.974Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "681390084ce9c33c39200b0a"
+  },
+  "username": "mattia",
+  "email": "aronicamattia8@gmail.com",
+  "bio": "",
+  "profilePicture": "default-profile.jpg",
+  "followers": [],
+  "following": [
+    {
+      "$oid": "68138f1b5fc37f3514f725db"
+    }
+  ],
+  "isAdmin": true,
+  "isApiUser": true,
+  "createdAt": {
+    "$date": "2025-05-01T15:15:20.232Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-01T15:23:01.973Z"
+  },
+  "__v": 0
+}]
