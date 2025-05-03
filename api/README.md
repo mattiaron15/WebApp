@@ -35,7 +35,7 @@ npm install
 
 3. Configura le variabili d'ambiente
 
-Crea un file `.env` nella root del progetto con le seguenti variabili:
+Crea un file `.env` nella root del progetto con le seguenti variabili: (solo se si vuole prova l'api da sola senza WebApp)
 
 ```
 MONGO_URI=mongodb://localhost:27017/auth-api
