@@ -1,0 +1,123 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-md-6 mx-auto">
+    <div class="card auth-card">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Crea un Account</h4>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-danger" id="error-alert" style="display: none;"></div>
+        
+        <form id="register-form">
+          <div class="mb-3">
+            <label for="username" class="form-label">Nome Utente</label>
+            <input type="text" class="form-control" id="username" name="username" required minlength="3" maxlength="20">
+            <small class="text-muted">Il nome utente deve essere tra 3 e 20 caratteri</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required minlength="6">
+            <small class="text-muted">La password deve essere di almeno 6 caratteri</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Conferma Password</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+          </div>
+          
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">Registrati</button>
+          </div>
+        </form>
+        
+        <div class="mt-3 text-center">
+          <p>Hai già un account? <a href="/login">Accedi qui</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const registerForm = document.getElementById('register-form');
+    const errorAlert = document.getElementById('error-alert');
+    
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = registerForm.username.value;
+      const email = registerForm.email.value;
+      const password = registerForm.password.value;
+      const confirmPassword = registerForm.confirmPassword.value;
+      
+      // Verifica che le password corrispondano
+      if (password !== confirmPassword) {
+        errorAlert.textContent = 'Le password non corrispondono';
+        errorAlert.style.display = 'block';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.token) {
+          // Memorizza il token
+          localStorage.setItem('token', data.token);
+          
+          // Ottieni i dati dell'utente
+          try {
+            const userResponse = await fetch('/api/auth/me', {
+              headers: {
+                'Authorization': `Bearer ${data.token}`,
+                'x-auth-token': data.token
+              }
+            });
+            
+            const userData = await userResponse.json();
+            if (userResponse.ok) {
+              localStorage.setItem('user', JSON.stringify(userData));
+            }
+          } catch (userError) {
+            console.error('Errore nel recupero dei dati utente:', userError);
+          }
+          
+          // Reindirizza alla homepage
+          window.location.href = '/';
+        } else {
+          // Mostra messaggio di errore
+          let errorMessage = data.msg || 'Registrazione fallita. Riprova.';
+          
+          // Formatta gli errori di validazione se esistono
+          if (data.errors && Array.isArray(data.errors)) {
+            errorMessage = data.errors.map(err => err.msg).join('<br>');
+          }
+          
+          errorAlert.innerHTML = errorMessage;
+          errorAlert.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Errore di registrazione:', error);
+        errorAlert.textContent = 'Si è verificato un errore. Riprova più tardi.';
+        errorAlert.style.display = 'block';
+      }
+    });
+  });
+</script>
+
+<%- include('partials/footer') %> 

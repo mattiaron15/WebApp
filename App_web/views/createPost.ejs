@@ -1,0 +1,350 @@
+<%- include('partials/header') %>
+
+<style>
+  /* Migliora lo stile e l'usabilità dei tag nel dropdown */
+  .form-check {
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .form-check:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .form-check-label {
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  /* Mantieni il menu aperto quando si interagisce con i checkbox */
+  .dropdown-menu {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  /* Assicura che il dropdown rimanga visibile quando è in stato "show" */
+  .dropdown-menu.show {
+    display: block;
+  }
+  
+  /* Migliora l'allineamento della checkbox anteprima */
+  #preview-toggle {
+    margin-top: 0.15rem;
+  }
+  
+  .form-check-input {
+    vertical-align: middle;
+  }
+  
+  /* Allineamento per le label dei checkbox */
+  .form-check-label {
+    vertical-align: middle;
+    margin-left: 4px;
+  }
+  
+  /* Testo bianco per i tag nel dropdown */
+  .dropdown-menu .form-check-label {
+    color: white;
+  }
+  
+  /* Anche il testo di spiegazione in bianco */
+  .dropdown-menu .text-muted {
+    color: rgba(255, 255, 255, 0.75) !important;
+  }
+  
+  /* Sfondo scuro per il dropdown menu */
+  .dropdown-menu {
+    background-color: #333;
+    border-color: #444;
+  }
+</style>
+
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Crea Nuovo Post</h4>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-danger" id="error-alert" style="display: none;"></div>
+        <form id="create-post-form">
+          <div class="mb-3">
+            <label for="title" class="form-label">Titolo</label>
+            <input type="text" class="form-control" id="title" name="title" required maxlength="100">
+            <small class="text-muted">Massimo 100 caratteri</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="content" class="form-label">Contenuto</label>
+            <textarea class="form-control" id="content" name="content" rows="10" required minlength="10"></textarea>
+            <small class="text-muted">Minimo 10 caratteri</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="image" class="form-label">URL Immagine (opzionale)</label>
+            <input type="url" class="form-control" id="image" name="image">
+            <small class="text-muted">Inserisci un URL per l'immagine del post</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="tags-select" class="form-label">Tag</label>
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="dropdownTagsButton" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                Seleziona i tag...
+              </button>
+              <div class="dropdown-menu p-3 w-100" aria-labelledby="dropdownTagsButton">
+                <div class="mb-2">
+                  <small class="text-muted">Seleziona uno o più tag per il tuo post (clicca sul testo o sul checkbox):</small>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input tag-checkbox" type="checkbox" value="technology" id="tag-technology">
+                  <label class="form-check-label" for="tag-technology">tecnologia</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input tag-checkbox" type="checkbox" value="science" id="tag-science">
+                  <label class="form-check-label" for="tag-science">scienza</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input tag-checkbox" type="checkbox" value="art" id="tag-art">
+                  <label class="form-check-label" for="tag-art">arte</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input tag-checkbox" type="checkbox" value="lifestyle" id="tag-lifestyle">
+                  <label class="form-check-label" for="tag-lifestyle">lifestyle</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input tag-checkbox" type="checkbox" value="travel" id="tag-travel">
+                  <label class="form-check-label" for="tag-travel">viaggi</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input tag-checkbox" type="checkbox" value="food" id="tag-food">
+                  <label class="form-check-label" for="tag-food">cibo</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input tag-checkbox" type="checkbox" value="war" id="tag-war">
+                  <label class="form-check-label" for="tag-war">guerre</label>
+                </div>
+              </div>
+            </div>
+            <div id="selected-tags-container" class="mt-2" style="display: none;">
+              <small>Tag selezionati: <span id="selected-tags-display"></span></small>
+            </div>
+            <input type="hidden" id="tags" name="tags">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Anteprima</label>
+            <div class="form-control d-flex align-items-center" style="height: auto; padding-top: 0.47rem; padding-bottom: 0.47rem;">
+              <input class="form-check-input" type="checkbox" id="preview-toggle">
+              <label class="form-check-label ms-2 mb-0" for="preview-toggle">
+                Mostra anteprima del post
+              </label>
+            </div>
+          </div>
+          
+          <div id="preview-section" class="mb-4" style="display: none;">
+            <div class="card">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Anteprima</h5>
+              </div>
+              <div class="card-body">
+                <h1 id="preview-title"></h1>
+                <div id="preview-image-container" class="mb-3" style="display: none;">
+                  <img id="preview-image" class="img-fluid rounded" alt="Immagine post">
+                </div>
+                <div id="preview-content" class="post-content"></div>
+                <div id="preview-tags" class="mt-3"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-between">
+            <a href="/" class="btn btn-outline-secondary">Annulla</a>
+            <button type="submit" class="btn btn-primary">Pubblica Post</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const isLoggedIn = checkAuth();
+    
+    if (!isLoggedIn) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    const createPostForm = document.getElementById('create-post-form');
+    const errorAlert = document.getElementById('error-alert');
+    const previewToggle = document.getElementById('preview-toggle');
+    const previewSection = document.getElementById('preview-section');
+    const tagCheckboxes = document.querySelectorAll('.tag-checkbox');
+    const tagsInput = document.getElementById('tags');
+    const selectedTagsContainer = document.getElementById('selected-tags-container');
+    const selectedTagsDisplay = document.getElementById('selected-tags-display');
+    const dropdownButton = document.getElementById('dropdownTagsButton');
+    
+    // Funzione per aggiornare l'input nascosto con i tag selezionati
+    const updateTagsInput = () => {
+      const selectedTags = [];
+      let selectedTagsText = [];
+      
+      tagCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          selectedTags.push(checkbox.value);
+          selectedTagsText.push(checkbox.nextElementSibling.textContent);
+        }
+      });
+      
+      // Aggiorna l'input nascosto
+      tagsInput.value = selectedTags.join(',');
+      
+      // Aggiorna la visualizzazione dei tag selezionati
+      if (selectedTags.length > 0) {
+        selectedTagsContainer.style.display = 'block';
+        selectedTagsDisplay.textContent = selectedTagsText.join(', ');
+        
+        // Aggiorna il testo del pulsante dropdown con il numero di tag selezionati
+        if (selectedTags.length === 1) {
+          dropdownButton.textContent = '1 tag selezionato';
+        } else {
+          dropdownButton.textContent = `${selectedTags.length} tag selezionati`;
+        }
+      } else {
+        selectedTagsContainer.style.display = 'none';
+        dropdownButton.textContent = 'Seleziona i tag...';
+      }
+      
+      // Aggiorna anche l'anteprima se attiva
+      if (previewToggle.checked) {
+        updatePreview();
+      }
+    };
+    
+    // Aggiorna quando un checkbox viene cambiato
+    tagCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', updateTagsInput);
+    });
+    
+    // Preview toggle
+    previewToggle.addEventListener('change', () => {
+      if (previewToggle.checked) {
+        updatePreview();
+        previewSection.style.display = 'block';
+      } else {
+        previewSection.style.display = 'none';
+      }
+    });
+    
+    // Update preview when form fields change
+    document.getElementById('title').addEventListener('input', updatePreview);
+    document.getElementById('content').addEventListener('input', updatePreview);
+    document.getElementById('image').addEventListener('input', updatePreview);
+    
+    // Form submission
+    createPostForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Aggiorna l'input nascosto prima dell'invio
+      updateTagsInput();
+      
+      const title = createPostForm.title.value;
+      const content = createPostForm.content.value;
+      const image = createPostForm.image.value;
+      const tags = tagsInput.value;
+      
+      try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch('/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'x-auth-token': token
+          },
+          body: JSON.stringify({
+            title,
+            content,
+            image,
+            tags
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Redirect to the new post
+          window.location.href = `/post/${data.data._id}`;
+        } else {
+          // Show error message
+          errorAlert.textContent = data.message || 'Impossibile creare il post. Riprova.';
+          errorAlert.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Errore durante la creazione del post:', error);
+        errorAlert.textContent = 'Si è verificato un errore. Riprova più tardi.';
+        errorAlert.style.display = 'block';
+      }
+    });
+  });
+  
+  // Update preview function
+  const updatePreview = () => {
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+    const image = document.getElementById('image').value;
+    const tagCheckboxes = document.querySelectorAll('.tag-checkbox');
+    const selectedTags = [];
+    
+    // Raccogli i tag selezionati
+    tagCheckboxes.forEach(checkbox => {
+      if (checkbox.checked) {
+        selectedTags.push(checkbox.value);
+      }
+    });
+    
+    // Update title
+    document.getElementById('preview-title').textContent = title || 'Titolo del Post';
+    
+    // Update content
+    document.getElementById('preview-content').innerHTML = content.replace(/\n/g, '<br>') || 'Il contenuto del post va qui...';
+    
+    // Update image
+    const previewImageContainer = document.getElementById('preview-image-container');
+    const previewImage = document.getElementById('preview-image');
+    
+    if (image) {
+      previewImage.src = image;
+      previewImageContainer.style.display = 'block';
+      
+      // Show image loading error if the image fails to load
+      previewImage.onerror = () => {
+        previewImageContainer.innerHTML = `
+          <div class="alert alert-warning">
+            <p class="mb-0">Impossibile caricare l'immagine dall'URL fornito.</p>
+          </div>
+        `;
+      };
+    } else {
+      previewImageContainer.style.display = 'none';
+    }
+    
+    // Update tags
+    const previewTags = document.getElementById('preview-tags');
+    if (selectedTags.length > 0) {
+      previewTags.innerHTML = selectedTags.map(tag => `
+        <span class="tag">#${tag}</span>
+      `).join('');
+    } else {
+      previewTags.innerHTML = '';
+    }
+  };
+</script>
+
+<%- include('partials/footer') %> 

@@ -1,0 +1,753 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-lg-12 mb-4">
+    <div class="card">
+      <div class="card-body profile-header">
+        <img src="/images/default-profile.jpg" alt="Profilo" class="profile-avatar mb-3" id="profile-image">
+        <h2 class="mb-2" id="profile-username">Caricamento...</h2>
+        <p class="text-muted mb-3" id="profile-bio">Caricamento delle informazioni del profilo...</p>
+        
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="posts-count">0</div>
+            <div>Post</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="followers-count">0</div>
+            <div>Followers</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="following-count">0</div>
+            <div>Following</div>
+          </div>
+        </div>
+        
+        <button id="edit-profile-btn" class="btn btn-primary mt-2" style="display: none;">
+          Modifica Profilo
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">I Tuoi Post</h5>
+        <a href="/create-post" class="btn btn-light btn-sm">
+          <i class="fas fa-plus"></i> Nuovo Post
+        </a>
+      </div>
+      <div class="card-body">
+        <div id="user-posts" class="row">
+          <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Caricamento...</span>
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-3" id="load-more-container" style="display: none;">
+          <button id="load-more-btn" class="btn btn-outline-primary">Carica Altri</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Informazioni Account</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Email
+            <span class="text-muted" id="profile-email">Caricamento...</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Membro Dal
+            <span class="text-muted" id="profile-joined">Caricamento...</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Azioni</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <a href="/create-post" class="btn btn-outline-primary">
+            <i class="fas fa-pen"></i> Crea Nuovo Post
+          </a>
+          <button id="change-password-btn" class="btn btn-outline-warning">
+            <i class="fas fa-key"></i> Cambia Password
+          </button>
+          <button id="logout-button" class="btn btn-outline-danger">
+            <i class="fas fa-sign-out-alt"></i> Esci
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editProfileModalLabel">Modifica Profilo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-profile-form">
+          <div class="mb-3">
+            <label for="bio" class="form-label">Bio</label>
+            <textarea class="form-control" id="bio" name="bio" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="profile-picture" class="form-label">URL Immagine Profilo</label>
+            <input type="text" class="form-control" id="profile-picture" name="profilePicture">
+            <small class="text-muted">Inserisci un URL per la tua immagine del profilo.</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-primary" id="save-profile-btn">Salva Modifiche</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changePasswordModalLabel">Cambia Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger" id="password-error-alert" style="display: none;"></div>
+        <div class="alert alert-success" id="password-success-alert" style="display: none;"></div>
+        <form id="change-password-form">
+          <div class="mb-3">
+            <label for="current-password" class="form-label">Password Attuale</label>
+            <input type="password" class="form-control" id="current-password" name="currentPassword" required>
+          </div>
+          <div class="mb-3">
+            <label for="new-password" class="form-label">Nuova Password</label>
+            <input type="password" class="form-control" id="new-password" name="newPassword" required>
+            <small class="text-muted">La password deve essere di almeno 6 caratteri.</small>
+          </div>
+          <div class="mb-3">
+            <label for="confirm-password" class="form-label">Conferma Nuova Password</label>
+            <input type="password" class="form-control" id="confirm-password" name="confirmPassword" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-primary" id="save-password-btn">Cambia Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentUserId;
+  let currentPage = 1;
+  let totalPages = 1;
+  
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM loaded, checking auth...');
+    
+    const isLoggedIn = checkAuth();
+    
+    if (!isLoggedIn) {
+      console.error('User not logged in, redirecting to login page');
+      window.location.href = '/login';
+      return;
+    }
+    
+    try {
+      console.log('User is logged in, retrieving user data');
+      
+      const token = localStorage.getItem('token');
+      
+      // Ottieni sempre i dati utente aggiornati dall'API
+      console.log('Getting fresh user data from API');
+      const userResponse = await fetch(`/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-auth-token': token
+        }
+      });
+      
+      const userResult = await userResponse.json();
+      
+      if (!userResult.success || !userResult.user) {
+        console.error('Failed to retrieve user data from API:', userResult);
+        alert('Error retrieving user data. Please log in again.');
+        window.location.href = '/login';
+        return;
+      }
+      
+      // Estrai le informazioni dell'utente dall'API
+      const apiUser = userResult.user;
+      console.log('User data from API:', apiUser);
+      
+      // Assicurati che l'ID sia definito
+      currentUserId = apiUser._id || apiUser.id;
+      
+      if (!currentUserId) {
+        console.error('No user ID found in API response');
+        alert('Error: User ID not found. Please log in again.');
+        window.location.href = '/login';
+        return;
+      }
+      
+      console.log('Using user ID from API:', currentUserId);
+      
+      // Aggiorna localStorage con i dati più recenti
+      const userInfo = {
+        id: currentUserId,
+        username: apiUser.username,
+        email: apiUser.email,
+        bio: apiUser.bio || '',
+        profilePicture: apiUser.profilePicture || 'default-profile.jpg',
+        isAdmin: apiUser.isAdmin === true
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userInfo));
+      console.log('Updated user data in localStorage:', userInfo);
+      
+      // Fetch user profile
+      console.log('Updating profile data...');
+      const user = await updateProfileData();
+      
+      if (user) {
+        console.log('Profile data updated, loading posts...');
+        // Load user posts using the ID dall'API
+        await loadUserPosts(currentUserId, 1);
+      } else {
+        console.error('Failed to update profile data');
+      }
+      
+      // Set a timeout to refresh post count after a short delay
+      // This is a workaround for timing issues that might occur
+      setTimeout(() => {
+        refreshPostCount(currentUserId);
+      }, 2000);
+    } catch (error) {
+      console.error('Error during profile initialization:', error);
+    }
+    
+    // Set up event listeners
+    document.getElementById('edit-profile-btn').addEventListener('click', () => {
+      // Show edit profile modal
+      const editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+      editProfileModal.show();
+    });
+    
+    document.getElementById('save-profile-btn').addEventListener('click', async () => {
+      await updateProfile();
+    });
+    
+    document.getElementById('load-more-btn').addEventListener('click', () => {
+      loadUserPosts(currentUserId, currentPage + 1);
+    });
+    
+    document.getElementById('logout-button').addEventListener('click', () => {
+      handleLogout();
+    });
+    
+    // Aggiungo event listener per il pulsante di cambio password
+    document.getElementById('change-password-btn').addEventListener('click', () => {
+      // Reset form e messaggi
+      document.getElementById('change-password-form').reset();
+      document.getElementById('password-error-alert').style.display = 'none';
+      document.getElementById('password-success-alert').style.display = 'none';
+      
+      // Mostra il modale di cambio password
+      const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+      changePasswordModal.show();
+    });
+    
+    // Aggiungo event listener per il pulsante di salvataggio della nuova password
+    document.getElementById('save-password-btn').addEventListener('click', async () => {
+      await changePassword();
+    });
+    
+    // Listen for follow/unfollow events from other pages
+    window.addEventListener('userFollowChanged', async (event) => {
+      console.log('Received userFollowChanged event:', event.detail);
+      // Update profile data to refresh followers/following counters
+      await updateProfileData();
+    });
+  });
+  
+  // Update profile data (followers, following, etc.)
+  const updateProfileData = async () => {
+    try {
+      console.log('updateProfileData started');
+      const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
+      if (!token || !userData) {
+        console.error('Authentication data missing');
+        return null;
+      }
+      
+      const response = await fetch(`/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      console.log('Profile data received:', data);
+      
+      if (data.success && data.user) {
+        const user = data.user;
+        
+        // Update profile info
+        document.getElementById('profile-username').textContent = user.username;
+        document.getElementById('profile-bio').textContent = user.bio || 'No bio provided';
+        document.getElementById('profile-email').textContent = user.email;
+        document.getElementById('profile-joined').textContent = formatDate(user.createdAt);
+        
+        if (user.profilePicture && user.profilePicture !== 'default-profile.jpg') {
+          document.getElementById('profile-image').src = user.profilePicture;
+        }
+        
+        // Update followers/following counts
+        const followersCount = user.followers ? (Array.isArray(user.followers) ? user.followers.length : 0) : 0;
+        const followingCount = user.following ? (Array.isArray(user.following) ? user.following.length : 0) : 0;
+        
+        console.log('Updating counters - Followers:', followersCount, 'Following:', followingCount);
+        
+        document.getElementById('followers-count').textContent = followersCount;
+        document.getElementById('following-count').textContent = followingCount;
+        
+        // Show edit profile button
+        document.getElementById('edit-profile-btn').style.display = 'inline-block';
+        
+        // Pre-fill edit profile form
+        document.getElementById('bio').value = user.bio || '';
+        document.getElementById('profile-picture').value = user.profilePicture || '';
+        
+        // Update the user data in localStorage if needed
+        if (user._id && user._id !== userData.id) {
+          console.log('Updating user ID in localStorage from', userData.id, 'to', user._id);
+          userData.id = user._id;
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
+        
+        return user;
+      } else {
+        console.error('Failed to get user data:', data.message || 'Unknown error');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error updating profile data:', error);
+      return null;
+    }
+  };
+  
+  // Load user posts
+  const loadUserPosts = async (userId, page) => {
+    try {
+      console.log('Loading posts for user ID:', userId);
+      
+      if (!userId) {
+        console.error('Cannot load posts: userId is undefined or null');
+        return;
+      }
+      
+      // Ottieni l'email dell'utente dal localStorage
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('Current user from localStorage:', currentUser);
+      
+      let response;
+      let data;
+      
+      try {
+        // Prima tenta con l'ID dell'utente
+        console.log('Attempting to load posts for user ID:', userId);
+        response = await fetch(`/api/users/${userId}/posts?page=${page}`);
+        data = await response.json();
+        
+        // Se c'è un errore grave (diverso da "User not found"), mostra l'errore
+        if (!data.success && data.message !== 'User not found') {
+          console.error('Error loading posts:', data.message);
+          throw new Error(data.message);
+        }
+      } catch (error) {
+        console.error('Error in post fetching:', error);
+        throw error;
+      }
+      
+      console.log('Posts data received:', data);
+      
+      if (data.success) {
+        const postsContainer = document.getElementById('user-posts');
+        
+        // If first page, clear container
+        if (page === 1) {
+          postsContainer.innerHTML = '';
+          // Update the posts count in the profile stats
+          const postsCount = document.getElementById('posts-count');
+          if (postsCount) {
+            postsCount.textContent = data.totalPosts || 0;
+            console.log('Updated posts count to:', data.totalPosts);
+          }
+        }
+        
+        currentPage = data.currentPage;
+        totalPages = data.totalPages;
+        
+        if (data.count > 0) {
+          data.data.forEach(post => {
+            console.log('Processing post:', post._id, 'by author:', post.author.username);
+            const date = formatDate(post.createdAt);
+            let postImage = '';
+            
+            if (post.image) {
+              postImage = `
+                <div class="mb-3">
+                  <img src="${post.image}" alt="${post.title}" class="img-fluid rounded">
+                </div>
+              `;
+            }
+            
+            postsContainer.innerHTML += `
+              <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                  ${postImage}
+                  <div class="card-body">
+                    <h5 class="card-title">${post.title}</h5>
+                    <p class="card-text">${truncateText(post.content, 100)}</p>
+                  </div>
+                  <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">${date}</small>
+                      <div>
+                        <a href="/post/${post._id}" class="btn btn-sm btn-primary">Visualizza</a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deletePost('${post._id}')">
+                          <i class="far fa-trash-alt"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          
+          // Show/hide load more button
+          const loadMoreContainer = document.getElementById('load-more-container');
+          loadMoreContainer.style.display = currentPage < totalPages ? 'block' : 'none';
+        } else if (page === 1) {
+          postsContainer.innerHTML = `
+            <div class="col-12 text-center">
+              <p>Non hai ancora creato nessun post.</p>
+              <a href="/create-post" class="btn btn-primary">Crea il tuo primo post</a>
+            </div>
+          `;
+        }
+      } else {
+        console.error('Failed to load posts:', data.message);
+        
+        // Mostra messaggio di errore nel contenitore dei post
+        const postsContainer = document.getElementById('user-posts');
+        if (page === 1) {
+          postsContainer.innerHTML = `
+            <div class="col-12 text-center">
+              <div class="alert alert-warning">
+                <p><i class="fas fa-exclamation-triangle"></i> ${data.message}</p>
+                <p>Prova ad aggiornare la pagina o a creare un nuovo post.</p>
+                <div class="mt-3">
+                  <button class="btn btn-sm btn-primary me-2" onclick="window.location.reload()">
+                    <i class="fas fa-sync"></i> Ricarica Pagina
+                  </button>
+                  <a href="/create-post" class="btn btn-sm btn-success">
+                    <i class="fas fa-plus"></i> Crea Nuovo Post
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user posts:', error);
+      
+      // Mostra messaggio di errore nel contenitore dei post
+      const postsContainer = document.getElementById('user-posts');
+      postsContainer.innerHTML = `
+        <div class="col-12 text-center">
+          <div class="alert alert-danger">
+            <p><i class="fas fa-exclamation-circle"></i> Errore nel caricamento dei post: ${error.message || 'Errore sconosciuto'}</p>
+            <p>Prova a disconnetterti e ad accedere nuovamente.</p>
+            <div class="mt-3">
+              <button class="btn btn-sm btn-primary me-2" onclick="window.location.reload()">
+                <i class="fas fa-sync"></i> Ricarica Pagina
+              </button>
+              <button class="btn btn-sm btn-warning" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> Esci
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  };
+  
+  // Update profile
+  const updateProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const bio = document.getElementById('bio').value;
+      const profilePicture = document.getElementById('profile-picture').value;
+      
+      // Usa il nuovo endpoint API per l'aggiornamento del profilo
+      const response = await fetch(`/api/auth/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-auth-token': token
+        },
+        body: JSON.stringify({
+          bio,
+          profilePicture
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+        
+        // Update profile data
+        await updateProfileData();
+        
+        // Update user data in localStorage
+        const userData = JSON.parse(localStorage.getItem('user'));
+        userData.bio = bio;
+        userData.profilePicture = profilePicture;
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Show success message
+        alert('Profilo aggiornato con successo!');
+      } else {
+        throw new Error(data.message || 'Impossibile aggiornare il profilo');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Impossibile aggiornare il profilo: ' + (error.message || 'Riprova più tardi.'));
+    }
+  };
+  
+  // Delete post
+  const deletePost = async (postId) => {
+    if (!confirm('Sei sicuro di voler eliminare questo post? Questa azione non può essere annullata.')) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('Post deleted successfully:', postId);
+        
+        // Reload profile data to update counters
+        await updateProfileData();
+        
+        // Reload posts
+        await loadUserPosts(currentUserId, 1);
+        
+        // Aggiorna manualmente il conteggio dei post
+        setTimeout(() => {
+          refreshPostCount(currentUserId);
+        }, 1000);
+      } else {
+        throw new Error(data.message || 'Impossibile eliminare il post');
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Impossibile eliminare il post. Riprova più tardi.');
+    }
+  };
+  
+  // Function to update profile after following/unfollowing
+  const refreshProfileAfterAction = async () => {
+    // Update profile data to refresh counters
+    await updateProfileData();
+  };
+  
+  // Follow user functionality
+  const followUser = async (userId) => {
+    if (!checkAuth()) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/users/${userId}/follow`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const followBtn = document.querySelector(`.follow-btn[data-user-id="${userId}"]`);
+        
+        if (followBtn) {
+          if (data.isFollowing) {
+            followBtn.innerHTML = '<i class="fas fa-user-check"></i> Following';
+            followBtn.classList.replace('btn-primary', 'btn-success');
+          } else {
+            followBtn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+            followBtn.classList.replace('btn-success', 'btn-primary');
+          }
+        }
+        
+        // Update followers and following counts immediately
+        await updateProfileData();
+        
+        // Update local storage with new followers/following count if available
+        try {
+          const userData = JSON.parse(localStorage.getItem('user'));
+          if (userData && data.currentUserData) {
+            userData.followers = data.currentUserData.followers;
+            userData.following = data.currentUserData.following;
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } catch (e) {
+          console.error('Error updating user data in localStorage:', e);
+        }
+      }
+    } catch (error) {
+      console.error('Error following user:', error);
+    }
+  };
+  
+  // Function to manually refresh the post count
+  const refreshPostCount = async (userId) => {
+    try {
+      console.log('Manually refreshing post count for user:', userId);
+      
+      if (!userId) {
+        console.error('Cannot refresh post count: userId is undefined');
+        return;
+      }
+      
+      const response = await fetch(`/api/users/${userId}/posts?page=1&limit=1`);
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('Post count data received:', data);
+        
+        // Update the posts count in the profile stats
+        const postsCount = document.getElementById('posts-count');
+        if (postsCount) {
+          postsCount.textContent = data.totalPosts || 0;
+          console.log('Manually updated posts count to:', data.totalPosts);
+          
+          // Se non ci sono post ma dovrebbero essercene, ricarica la pagina del profilo
+          if (data.totalPosts > 0 && data.count === 0) {
+            console.log('Detected post count inconsistency, reloading profile page...');
+            window.location.reload();
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing post count:', error);
+    }
+  };
+  
+  // Change password
+  const changePassword = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const currentPassword = document.getElementById('current-password').value;
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      
+      // Validazione lato client
+      if (newPassword.length < 6) {
+        document.getElementById('password-error-alert').textContent = 'La nuova password deve essere di almeno 6 caratteri.';
+        document.getElementById('password-error-alert').style.display = 'block';
+        return;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        document.getElementById('password-error-alert').textContent = 'Le nuove password non corrispondono.';
+        document.getElementById('password-error-alert').style.display = 'block';
+        return;
+      }
+      
+      // Invia richiesta al server
+      const response = await fetch(`/api/auth/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-auth-token': token
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Mostra messaggio di successo
+        document.getElementById('password-success-alert').textContent = 'Password cambiata con successo!';
+        document.getElementById('password-success-alert').style.display = 'block';
+        document.getElementById('password-error-alert').style.display = 'none';
+        
+        // Resetta il form
+        document.getElementById('change-password-form').reset();
+        
+        // Chiudi il modale dopo 2 secondi
+        setTimeout(() => {
+          bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+        }, 2000);
+      } else {
+        // Mostra messaggio di errore
+        document.getElementById('password-error-alert').textContent = data.message || 'Impossibile cambiare la password.';
+        document.getElementById('password-error-alert').style.display = 'block';
+        document.getElementById('password-success-alert').style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      document.getElementById('password-error-alert').textContent = 'Si è verificato un errore. Riprova più tardi.';
+      document.getElementById('password-error-alert').style.display = 'block';
+      document.getElementById('password-success-alert').style.display = 'none';
+    }
+  };
+</script>
+
+<%- include('partials/footer') %> 

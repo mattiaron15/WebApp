@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stato API</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            max-width: 500px;
+            width: 100%;
+        }
+        .status {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .loading {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .details {
+            margin-top: 1rem;
+            text-align: left;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stato del Server API</h1>
+        <div id="status" class="status loading">Verifica dello stato...</div>
+        <div id="details" class="details">
+            <p>Caricamento delle informazioni...</p>
+        </div>
+    </div>
+
+    <script>
+        // Funzione per verificare lo stato dell'API
+        async function checkApiStatus() {
+            const statusElement = document.getElementById('status');
+            const detailsElement = document.getElementById('details');
+            
+            try {
+                // Effettua una richiesta all'endpoint di health check
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'UP') {
+                    // API online
+                    statusElement.textContent = 'API funzionante correttamente';
+                    statusElement.className = 'status online';
+                    
+                    // Mostra i dettagli
+                    detailsElement.innerHTML = `
+                        <p><strong>Stato database:</strong> ${data.dbConnected ? 'Connesso' : 'Disconnesso'}</p>
+                        <p><strong>Uptime:</strong> ${Math.floor(data.uptime / 60)} minuti</p>
+                        <p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                    `;
+                } else {
+                    // API offline
+                    statusElement.textContent = 'API non disponibile';
+                    statusElement.className = 'status offline';
+                    detailsElement.innerHTML = '<p>Impossibile ottenere informazioni dettagliate.</p>';
+                }
+            } catch (error) {
+                // Errore nella richiesta
+                statusElement.textContent = 'Impossibile contattare l\'API';
+                statusElement.className = 'status offline';
+                detailsElement.innerHTML = `<p>Errore: ${error.message}</p>`;
+            }
+        }
+        
+        // Verifica lo stato all'avvio della pagina
+        checkApiStatus();
+        
+        // Verifica lo stato ogni 30 secondi
+        setInterval(checkApiStatus, 30000);
+    </script>
+</body>
+</html>

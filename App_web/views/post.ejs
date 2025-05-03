@@ -1,0 +1,478 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card mb-4" id="post-container">
+      <div class="text-center p-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Caricamento...</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Commenti</h5>
+      </div>
+      <div class="card-body">
+        <div id="comment-form-container">
+          <form id="comment-form" class="mb-4">
+            <div class="mb-3">
+              <textarea class="form-control" name="content" rows="3" placeholder="Scrivi il tuo commento..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Invia Commento</button>
+          </form>
+        </div>
+        
+        <div id="comments-container">
+          <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Caricamento...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Autore</h5>
+      </div>
+      <div class="card-body" id="author-container">
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Caricamento...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Post Correlati</h5>
+      </div>
+      <div class="card-body" id="related-posts-container">
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Caricamento...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const postId = '<%= postId %>';
+    const isLoggedIn = checkAuth();
+    
+    // Aggiorna i dati dell'utente nel localStorage se l'utente è loggato
+    if (isLoggedIn) {
+      try {
+        const token = localStorage.getItem('token');
+        const userResponse = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-auth-token': token
+          }
+        });
+        
+        const userData = await userResponse.json();
+        if (userData.success && userData.user) {
+          // Aggiorna il localStorage con i dati più recenti dell'utente, incluso isAdmin
+          const userInfo = {
+            id: userData.user._id || userData.user.id,
+            username: userData.user.username,
+            email: userData.user.email,
+            profilePicture: userData.user.profilePicture || 'default-profile.jpg',
+            bio: userData.user.bio || '',
+            isAdmin: userData.user.isAdmin === true  // Assicurati che sia un booleano
+          };
+          localStorage.setItem('user', JSON.stringify(userInfo));
+          console.log('Updated user data in localStorage:', userInfo);
+        }
+      } catch (error) {
+        console.error('Error updating user data:', error);
+      }
+    }
+    
+    // Inizializza la connessione Socket.IO
+    const socket = io();
+    
+    // Entra nella stanza del post per aggiornamenti in tempo reale
+    socket.emit('join-post', postId);
+    
+    // Ascolta gli aggiornamenti sui "mi piace" del post
+    socket.on('post-like-update', (data) => {
+      const likeCount = document.getElementById(`likes-count-${data.commentId || postId}`);
+      const likeButton = document.getElementById(`like-button-${data.commentId || postId}`);
+      
+      if (likeCount) {
+        likeCount.textContent = data.likesCount;
+      }
+      
+      if (likeButton) {
+        const heartIcon = likeButton.querySelector('i');
+        if (heartIcon) {
+          const currentUserId = getUserId();
+          const didUserLike = data.isLiked && data.userId === currentUserId;
+          
+          if (didUserLike) {
+            heartIcon.classList.remove('far');
+            heartIcon.classList.add('fas');
+            likeButton.classList.add('active');
+          } else if (data.userId === currentUserId) {
+            heartIcon.classList.remove('fas');
+            heartIcon.classList.add('far');
+            likeButton.classList.remove('active');
+          }
+        }
+      }
+    });
+    
+    // Ascolta i nuovi commenti
+    socket.on('new-comment', (data) => {
+      // Ricarica i commenti per mostrare quello nuovo
+      loadComments(postId);
+    });
+    
+    // Ascolta gli aggiornamenti sui "mi piace" dei commenti
+    socket.on('comment-like-update', (data) => {
+      const commentLikeCount = document.getElementById(`comment-likes-${data.commentId}`);
+      
+      if (commentLikeCount) {
+        commentLikeCount.textContent = data.likesCount;
+      }
+    });
+    
+    // Carica i dettagli del post
+    try {
+      const response = await fetch(`/api/posts/${postId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const post = data.data;
+        const date = formatDate(post.createdAt);
+        let postImage = '';
+        
+        if (post.image) {
+          postImage = `
+            <div class="text-center mb-4">
+              <img src="${post.image}" alt="${post.title}" class="img-fluid rounded">
+            </div>
+          `;
+        }
+        
+        // Funzione per tradurre i tag in italiano
+        const translateTag = (tag) => {
+          const translations = {
+            'technology': 'tecnologia',
+            'science': 'scienza',
+            'art': 'arte',
+            'lifestyle': 'lifestyle',
+            'travel': 'viaggi',
+            'food': 'cibo',
+            'war': 'guerre'
+          };
+          return translations[tag] || tag;
+        };
+        
+        const tagsHtml = post.tags.length > 0
+          ? post.tags.map(tag => `<span class="tag">#${translateTag(tag)}</span>`).join('')
+          : '';
+        
+        const postContainer = document.getElementById('post-container');
+        postContainer.innerHTML = `
+          <div class="card-body">
+            <h1 class="card-title mb-3">${post.title}</h1>
+            <div class="post-author mb-4">
+              <img src="${post.author.profilePicture}" alt="${post.author.username}" class="rounded-circle">
+              <div>
+                <h6 class="mb-0">${post.author.username}</h6>
+                <small class="text-muted">Pubblicato il ${date}</small>
+              </div>
+            </div>
+            ${postImage}
+            <div class="post-content mb-4">${post.content}</div>
+            <div class="tags mb-3">${tagsHtml}</div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <button class="btn btn-outline-primary me-2" id="like-button-${post._id}" onclick="handleLike('${post._id}')">
+                  <i class="${post.likes.includes(getUserId()) ? 'fas' : 'far'} fa-heart"></i> <span id="likes-count-${post._id}">${post.likes.length}</span>
+                </button>
+                <button class="btn btn-outline-secondary">
+                  <i class="far fa-comment"></i> <span>${post.comments.length}</span>
+                </button>
+              </div>
+              <div>
+                <button class="btn btn-outline-secondary me-2" onclick="copyShareLink('${post._id}')">
+                  <i class="fas fa-share"></i> Condividi
+                </button>
+                <div id="delete-button-container"></div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Mostra le informazioni sull'autore
+        const authorContainer = document.getElementById('author-container');
+        authorContainer.innerHTML = `
+          <div class="d-flex flex-column align-items-center">
+            <img src="${post.author.profilePicture}" alt="${post.author.username}" class="rounded-circle mb-3" width="100" height="100">
+            <h5 class="mb-2">${post.author.username}</h5>
+            <p class="text-muted mb-3">${post.author.bio || 'Nessuna bio disponibile'}</p>
+            <button class="btn btn-sm btn-primary follow-btn" data-user-id="${post.author._id}" onclick="followUser('${post.author._id}')">
+              <i class="fas fa-user-plus"></i> Segui
+            </button>
+            <a href="/explore?author=${post.author._id}" class="btn btn-sm btn-outline-secondary mt-2">
+              Visualizza tutti i post
+            </a>
+          </div>
+        `;
+        
+        // Aggiungi il pulsante di eliminazione se l'utente è il proprietario
+        // o hanno la stessa email (controllo anche tramite email per gestire ID diversi)
+        const currentUserId = getUserId();
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const postAuthorId = post.author._id;
+        const postAuthorEmail = post.author.email;
+        
+        console.log('Current user ID:', currentUserId);
+        console.log('Current user email:', currentUser.email);
+        console.log('Current user isAdmin:', currentUser.isAdmin);
+        console.log('Post author ID:', postAuthorId);
+        console.log('Post author email:', postAuthorEmail);
+        console.log('Post author object:', post.author);
+        
+        // Verifica se l'utente è il proprietario o un admin
+        const isOwner = currentUserId === postAuthorId || 
+                       (currentUser.email && postAuthorEmail && currentUser.email === postAuthorEmail);
+        const isAdmin = currentUser.isAdmin === true;
+        
+        console.log('Is owner?', isOwner);
+        console.log('Is admin?', isAdmin, '(currentUser.isAdmin =', currentUser.isAdmin, ')');
+        
+        const deleteButtonContainer = document.getElementById('delete-button-container');
+        if (isOwner || isAdmin) {
+          console.log('User is post owner or admin, showing delete button');
+          deleteButtonContainer.innerHTML = `
+            <button class="btn btn-outline-danger" id="delete-post-btn" onclick="confirmDeletePost('${post._id}')">
+              <i class="fas fa-trash"></i> Elimina
+            </button>
+          `;
+        } else {
+          console.log('User is not authorized to delete this post');
+        }
+        
+        // Nascondi il modulo per i commenti se non sei loggato
+        if (!isLoggedIn) {
+          const commentFormContainer = document.getElementById('comment-form-container');
+          commentFormContainer.innerHTML = `
+            <div class="alert alert-info">
+              <p class="mb-0">Devi <a href="/login">accedere</a> per commentare questo post.</p>
+            </div>
+          `;
+        } else {
+          // Configura l'invio del modulo per i commenti
+          const commentForm = document.getElementById('comment-form');
+          commentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleCommentSubmit(postId, commentForm);
+          });
+        }
+        
+        // Carica i commenti
+        await loadComments(postId);
+        
+        // Carica i post correlati
+        loadRelatedPosts(post.tags, postId);
+      } else {
+        showPostError('Impossibile caricare il post');
+      }
+    } catch (error) {
+      console.error('Errore durante il caricamento del post:', error);
+      showPostError('Si è verificato un errore durante il caricamento del post');
+    }
+  });
+  
+  // Carica i post correlati in base ai tag
+  const loadRelatedPosts = async (tags, currentPostId) => {
+    try {
+      // A scopo dimostrativo, prenderemo solo i post recenti
+      // In un'app reale, avresti un endpoint per ottenere i post correlati
+      const response = await fetch('/api/posts?limit=3');
+      const data = await response.json();
+      
+      const relatedPostsContainer = document.getElementById('related-posts-container');
+      
+      if (data.success && data.data.length > 0) {
+        // Filtra il post corrente
+        const relatedPosts = data.data.filter(post => post._id !== currentPostId).slice(0, 3);
+        
+        if (relatedPosts.length > 0) {
+          relatedPostsContainer.innerHTML = '';
+          
+          relatedPosts.forEach(post => {
+            const date = formatDate(post.createdAt);
+            
+            relatedPostsContainer.innerHTML += `
+              <div class="mb-3">
+                <h6 class="mb-1"><a href="/post/${post._id}" class="text-decoration-none">${post.title}</a></h6>
+                <small class="text-muted d-block">Di ${post.author.username} il ${date}</small>
+              </div>
+            `;
+          });
+        } else {
+          relatedPostsContainer.innerHTML = '<p>Nessun post correlato trovato.</p>';
+        }
+      } else {
+        relatedPostsContainer.innerHTML = '<p>Nessun post correlato trovato.</p>';
+      }
+    } catch (error) {
+      console.error('Errore durante il caricamento dei post correlati:', error);
+      const relatedPostsContainer = document.getElementById('related-posts-container');
+      relatedPostsContainer.innerHTML = '<p>Impossibile caricare i post correlati.</p>';
+    }
+  };
+  
+  // Funzionalità di condivisione post
+  const sharePost = (postId) => {
+    const shareUrl = `${window.location.origin}/post/${postId}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: document.title,
+        url: shareUrl
+      }).catch(console.error);
+    } else {
+      // Fallback alla copia negli appunti
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('Link copiato negli appunti!');
+      }).catch(console.error);
+    }
+  };
+  
+  // Nuova funzione per copiare il link direttamente negli appunti
+  const copyShareLink = (postId) => {
+    const shareUrl = `${window.location.origin}/post/${postId}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('Link copiato negli appunti!');
+    }).catch(error => {
+      console.error('Impossibile copiare il link: ', error);
+      // Fallback per browser più vecchi
+      const tempInput = document.createElement('input');
+      document.body.appendChild(tempInput);
+      tempInput.value = shareUrl;
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      alert('Link copiato negli appunti!');
+    });
+  };
+  
+  // Funzionalità per seguire un utente
+  const followUser = async (userId) => {
+    if (!checkAuth()) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/users/${userId}/follow`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const followBtn = document.querySelector(`.follow-btn[data-user-id="${userId}"]`);
+        
+        if (followBtn) {
+          if (data.isFollowing) {
+            followBtn.innerHTML = '<i class="fas fa-user-check"></i> Ti segue';
+            followBtn.classList.replace('btn-primary', 'btn-success');
+          } else {
+            followBtn.innerHTML = '<i class="fas fa-user-plus"></i> Segui';
+            followBtn.classList.replace('btn-success', 'btn-primary');
+          }
+        }
+        
+        // Invia un evento personalizzato che altre pagine (come il profilo) possono ascoltare
+        const followEvent = new CustomEvent('userFollowChanged', {
+          detail: {
+            userId: userId,
+            isFollowing: data.isFollowing
+          }
+        });
+        window.dispatchEvent(followEvent);
+        
+        // Aggiorna il localStorage con i nuovi conteggi di follower/following se disponibili
+        try {
+          const userData = JSON.parse(localStorage.getItem('user'));
+          if (userData && data.currentUserData) {
+            userData.followers = data.currentUserData.followers;
+            userData.following = data.currentUserData.following;
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } catch (e) {
+          console.error('Errore durante l\'aggiornamento dei dati utente in localStorage:', e);
+        }
+      }
+    } catch (error) {
+      console.error('Errore nel seguire l\'utente:', error);
+    }
+  };
+  
+  // Mostra errore del post
+  const showPostError = (message) => {
+    const postContainer = document.getElementById('post-container');
+    postContainer.innerHTML = `
+      <div class="card-body text-center">
+        <h3 class="text-danger mb-3"><i class="fas fa-exclamation-circle"></i></h3>
+        <h5 class="mb-3">${message}</h5>
+        <a href="/" class="btn btn-primary">Torna alla Home</a>
+      </div>
+    `;
+  };
+  
+  // Funzionalità per eliminare un post
+  const confirmDeletePost = (postId) => {
+    if (confirm('Sei sicuro di voler eliminare questo post? Questa azione non può essere annullata.')) {
+      deletePost(postId);
+    }
+  };
+  
+  const deletePost = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Reindirizza alla home page dopo l'eliminazione avvenuta con successo
+        window.location.href = '/';
+      } else {
+        alert('Impossibile eliminare il post: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Errore durante l\'eliminazione del post:', error);
+      alert('Si è verificato un errore durante l\'eliminazione del post');
+    }
+  };
+</script>
+
+<%- include('partials/footer') %> 

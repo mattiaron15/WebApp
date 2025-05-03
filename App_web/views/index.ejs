@@ -1,0 +1,109 @@
+<%- include('partials/header') %>
+
+<div class="jumbotron bg-light p-5 rounded mb-4">
+  <h1 class="display-4">Benvenuto su BlogApp</h1>
+  <p class="lead">Condividi i tuoi pensieri, connettiti con gli altri ed esplora contenuti interessanti.</p>
+  <hr class="my-4">
+  <p>Unisciti alla nostra community oggi e inizia a condividere le tue idee con il mondo.</p>
+  <a class="btn btn-primary btn-lg" href="/register" role="button">Inizia Ora</a>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <h2 class="mb-4">Post in Tendenza</h2>
+    <div id="trending-posts" class="row">
+      <div class="col-12 text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Caricamento...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Su BlogApp</h5>
+      </div>
+      <div class="card-body">
+        <p class="card-text">BlogApp è una piattaforma dove puoi esprimerti, condividere le tue conoscenze e connetterti con persone che condividono i tuoi interessi.</p>
+        <a href="/about" class="btn btn-outline-primary">Scopri di Più</a>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Tag Popolari</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+          <a href="/explore?tag=technology" class="btn btn-sm btn-outline-secondary">#tecnologia</a>
+          <a href="/explore?tag=science" class="btn btn-sm btn-outline-secondary">#scienza</a>
+          <a href="/explore?tag=art" class="btn btn-sm btn-outline-secondary">#arte</a>
+          <a href="/explore?tag=lifestyle" class="btn btn-sm btn-outline-secondary">#lifestyle</a>
+          <a href="/explore?tag=travel" class="btn btn-sm btn-outline-secondary">#viaggi</a>
+          <a href="/explore?tag=food" class="btn btn-sm btn-outline-secondary">#cibo</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Carica i post in tendenza quando la pagina viene caricata
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const response = await fetch('/api/posts/trending');
+      const data = await response.json();
+      
+      if (data.success) {
+        const trendingPostsContainer = document.getElementById('trending-posts');
+        
+        if (data.data.length > 0) {
+          trendingPostsContainer.innerHTML = '';
+          
+          data.data.forEach(post => {
+            const date = new Date(post.createdAt).toLocaleDateString();
+            let postImage = '';
+            
+            if (post.image) {
+              postImage = `
+                <div class="mb-3">
+                  <img src="${post.image}" alt="${post.title}" class="img-fluid rounded">
+                </div>
+              `;
+            }
+            
+            trendingPostsContainer.innerHTML += `
+              <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                  ${postImage}
+                  <div class="card-body">
+                    <h5 class="card-title">${post.title}</h5>
+                    <p class="card-text">${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}</p>
+                  </div>
+                  <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <small class="text-muted">Di ${post.author.username} il ${date}</small>
+                      </div>
+                      <a href="/post/${post._id}" class="btn btn-sm btn-primary">Leggi Di Più</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+        } else {
+          trendingPostsContainer.innerHTML = '<div class="col-12"><p>Nessun post in tendenza disponibile.</p></div>';
+        }
+      }
+    } catch (error) {
+      console.error('Errore nel caricamento dei post in tendenza:', error);
+      const trendingPostsContainer = document.getElementById('trending-posts');
+      trendingPostsContainer.innerHTML = '<div class="col-12"><p>Impossibile caricare i post in tendenza. Riprova più tardi.</p></div>';
+    }
+  });
+</script>
+
+<%- include('partials/footer') %> 

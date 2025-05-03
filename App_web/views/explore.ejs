@@ -1,0 +1,333 @@
+<%- include('partials/header') %>
+
+<style>
+  .tag {
+    display: inline-block;
+    background-color: var(--bs-primary);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .tag:hover {
+    background-color: var(--bs-primary-darker, #0056b3);
+    transform: translateY(-1px);
+  }
+  
+  html[data-theme="dark"] .tag {
+    background-color: var(--bg-accent);
+  }
+  
+  html[data-theme="dark"] .tag:hover {
+    background-color: var(--bg-accent-hover, #4285f4);
+  }
+</style>
+
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <h1 class="mb-4">Esplora i Post</h1>
+        <form action="/explore" method="GET" class="mb-4">
+          <div class="input-group">
+            <input type="text" class="form-control" name="query" placeholder="Cerca post per titolo, contenuto o tag..." value="<%= typeof query !== 'undefined' ? query : '' %>">
+            <button class="btn btn-primary" type="submit">Cerca</button>
+          </div>
+        </form>
+        
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <a href="/explore" class="btn <%= !tag ? 'btn-primary' : 'btn-outline-primary' %>">Tutti</a>
+          <a href="/explore?tag=technology" class="btn <%= tag === 'technology' ? 'btn-primary' : 'btn-outline-primary' %>">#tecnologia</a>
+          <a href="/explore?tag=science" class="btn <%= tag === 'science' ? 'btn-primary' : 'btn-outline-primary' %>">#scienza</a>
+          <a href="/explore?tag=art" class="btn <%= tag === 'art' ? 'btn-primary' : 'btn-outline-primary' %>">#arte</a>
+          <a href="/explore?tag=lifestyle" class="btn <%= tag === 'lifestyle' ? 'btn-primary' : 'btn-outline-primary' %>">#lifestyle</a>
+          <a href="/explore?tag=travel" class="btn <%= tag === 'travel' ? 'btn-primary' : 'btn-outline-primary' %>">#viaggi</a>
+          <a href="/explore?tag=food" class="btn <%= tag === 'food' ? 'btn-primary' : 'btn-outline-primary' %>">#cibo</a>
+          <a href="/explore?tag=war" class="btn <%= tag === 'war' ? 'btn-primary' : 'btn-outline-primary' %>">#guerre</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div id="posts-container" class="row">
+      <div class="col-12 text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Caricamento...</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center mt-4 mb-4" id="pagination-container" style="display: none;">
+      <nav>
+        <ul class="pagination justify-content-center" id="pagination">
+          <!-- La paginazione sarà popolata da JavaScript -->
+        </ul>
+      </nav>
+    </div>
+    
+    <div class="text-center mt-4 mb-4" id="no-posts-message" style="display: none;">
+      <div class="alert alert-info">
+        <p class="mb-0">Nessun post trovato. Prova con una ricerca o un tag diverso.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPage = 1;
+  let totalPages = 1;
+  let searchQuery = '';
+  let tagFilter = '';
+  let authorFilter = '';
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    // Analizza i parametri URL
+    const urlParams = new URLSearchParams(window.location.search);
+    searchQuery = urlParams.get('query') || '';
+    tagFilter = urlParams.get('tag') || '';
+    authorFilter = urlParams.get('author') || '';
+    
+    // Carica i post
+    loadPosts(1);
+    
+    // Configura il modulo di ricerca
+    const searchForm = document.querySelector('form');
+    searchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      searchQuery = document.querySelector('input[name="query"]').value;
+      tagFilter = ''; // Cancella il filtro tag durante la ricerca
+      authorFilter = ''; // Cancella il filtro autore durante la ricerca
+      
+      // Aggiorna l'URL senza ricaricare
+      const url = new URL(window.location);
+      url.searchParams.set('query', searchQuery);
+      url.searchParams.delete('tag');
+      url.searchParams.delete('author');
+      window.history.pushState({}, '', url);
+      
+      loadPosts(1);
+    });
+  });
+  
+  // Funzione per tradurre i tag in italiano
+  const translateTag = (tag) => {
+    const translations = {
+      'technology': 'tecnologia',
+      'science': 'scienza',
+      'art': 'arte',
+      'lifestyle': 'lifestyle',
+      'travel': 'viaggi',
+      'food': 'cibo',
+      'war': 'guerre'
+    };
+    return translations[tag] || tag;
+  };
+  
+  const loadPosts = async (page) => {
+    try {
+      let url = `/api/posts?page=${page}&limit=9`;
+      
+      if (searchQuery) {
+        url = `/api/posts/search?query=${encodeURIComponent(searchQuery)}`;
+      } else if (tagFilter) {
+        // In un'app reale, avresti un endpoint di ricerca tag appropriato
+        // Questa è una versione semplificata
+        url = `/api/posts?tag=${encodeURIComponent(tagFilter)}&page=${page}&limit=9`;
+      } else if (authorFilter) {
+        url = `/api/users/${authorFilter}/posts?page=${page}&limit=9`;
+      }
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        const postsContainer = document.getElementById('posts-container');
+        const paginationContainer = document.getElementById('pagination-container');
+        const noPostsMessage = document.getElementById('no-posts-message');
+        
+        // Aggiorna le informazioni sulla pagina
+        currentPage = data.currentPage || 1;
+        totalPages = data.totalPages || 1;
+        
+        if (data.count > 0) {
+          // Nascondi il messaggio "nessun post"
+          noPostsMessage.style.display = 'none';
+          
+          // Pulisci il contenitore
+          postsContainer.innerHTML = '';
+          
+          // Aggiungi i post
+          data.data.forEach(post => {
+            const date = formatDate(post.createdAt);
+            let postImage = '';
+            
+            if (post.image) {
+              postImage = `
+                <div class="mb-3">
+                  <img src="${post.image}" alt="${post.title}" class="img-fluid rounded">
+                </div>
+              `;
+            }
+            
+            const tagsHtml = post.tags && post.tags.length > 0
+              ? post.tags.map(tag => `<span class="tag" onclick="filterByTag('${tag}')">#${translateTag(tag)}</span>`).join('')
+              : '';
+            
+            postsContainer.innerHTML += `
+              <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                  ${postImage}
+                  <div class="card-body">
+                    <h5 class="card-title">${post.title}</h5>
+                    <p class="card-text">${truncateText(post.content, 100)}</p>
+                    <div class="mb-2">
+                      ${tagsHtml}
+                    </div>
+                  </div>
+                  <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex align-items-center">
+                        <img src="${post.author.profilePicture}" alt="${post.author.username}" class="rounded-circle me-2" width="30" height="30">
+                        <small class="text-muted">${post.author.username}</small>
+                      </div>
+                      <small class="text-muted">${date}</small>
+                    </div>
+                    <div class="mt-2 d-grid">
+                      <a href="/post/${post._id}" class="btn btn-sm btn-primary">Leggi Di Più</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          
+          // Mostra la paginazione se necessario
+          if (totalPages > 1) {
+            paginationContainer.style.display = 'block';
+            
+            // Genera i link di paginazione
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            // Pulsante precedente
+            pagination.innerHTML += `
+              <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Precedente">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+            `;
+            
+            // Numeri di pagina
+            for (let i = 1; i <= totalPages; i++) {
+              if (
+                i === 1 || 
+                i === totalPages || 
+                (i >= currentPage - 2 && i <= currentPage + 2)
+              ) {
+                pagination.innerHTML += `
+                  <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                  </li>
+                `;
+              } else if (
+                i === currentPage - 3 || 
+                i === currentPage + 3
+              ) {
+                pagination.innerHTML += `
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#">...</a>
+                  </li>
+                `;
+              }
+            }
+            
+            // Pulsante successivo
+            pagination.innerHTML += `
+              <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Successivo">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            `;
+            
+            // Aggiungi listener di eventi per la paginazione
+            const pageLinks = document.querySelectorAll('.page-link');
+            pageLinks.forEach(link => {
+              if (link.hasAttribute('data-page')) {
+                link.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  const pageNum = parseInt(link.getAttribute('data-page'));
+                  loadPosts(pageNum);
+                  
+                  // Scorri fino all'inizio
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+              }
+            });
+          } else {
+            paginationContainer.style.display = 'none';
+          }
+        } else {
+          // Mostra il messaggio "nessun post"
+          postsContainer.innerHTML = '';
+          noPostsMessage.style.display = 'block';
+          paginationContainer.style.display = 'none';
+        }
+      }
+    } catch (error) {
+      console.error('Errore durante il caricamento dei post:', error);
+      const postsContainer = document.getElementById('posts-container');
+      postsContainer.innerHTML = `
+        <div class="col-12">
+          <div class="alert alert-danger">
+            <p class="mb-0">Si è verificato un errore durante il caricamento dei post. Riprova più tardi.</p>
+          </div>
+        </div>
+      `;
+    }
+  };
+  
+  // Funzione per filtrare i post per tag
+  const filterByTag = (tag) => {
+    // Imposta il filtro tag
+    tagFilter = tag;
+    searchQuery = '';
+    authorFilter = '';
+    
+    // Aggiorna l'URL senza ricaricare
+    const url = new URL(window.location);
+    url.searchParams.set('tag', tag);
+    url.searchParams.delete('query');
+    url.searchParams.delete('author');
+    window.history.pushState({}, '', url);
+    
+    // Carica i post filtrati
+    loadPosts(1);
+    
+    // Aggiorna lo stato visivo dei pulsanti dei tag
+    const tagButtons = document.querySelectorAll('.d-flex.flex-wrap.gap-2.mb-3 .btn');
+    tagButtons.forEach(button => {
+      if (button.getAttribute('href') === `/explore?tag=${tag}`) {
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-primary');
+      } else if (button.getAttribute('href') === '/explore') {
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-outline-primary');
+      } else {
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-outline-primary');
+      }
+    });
+  };
+</script>
+
+<%- include('partials/footer') %> 

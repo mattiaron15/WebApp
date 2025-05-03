@@ -1,0 +1,483 @@
+/* General styles */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+  color: #212529;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+footer {
+  margin-top: auto;
+}
+
+/* Navbar styles */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #0d6efd;
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Card styles */
+.card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  background-color: #fff;
+  color: #212529;
+  border-color: #dee2e6;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card-header {
+  font-weight: bold;
+}
+
+/* Post styles */
+.post-card {
+  margin-bottom: 20px;
+}
+
+.post-content {
+  white-space: pre-line;
+}
+
+.post-author {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.post-author img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+/* Comment styles */
+.comment {
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  background-color: #f8f9fa;
+}
+
+.comment.reply {
+  margin-left: 30px;
+  margin-bottom: 10px;
+  background-color: #f0f0f0;
+  border-left: 3px solid #0d6efd;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.comment-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.comment-content {
+  margin-left: 50px;
+}
+
+.replies {
+  margin-left: 50px;
+}
+
+/* User profile styles */
+.profile-header {
+  padding: 30px 0;
+  text-align: center;
+  position: relative;
+}
+
+.profile-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 20px 0;
+}
+
+.profile-stat {
+  text-align: center;
+}
+
+.profile-stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0d6efd;
+}
+
+/* Auth forms */
+.auth-card {
+  max-width: 500px;
+  margin: 50px auto;
+}
+
+/* Utilities */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Tags */
+.tag {
+  display: inline-block;
+  background-color: var(--tag-bg);
+  color: var(--tag-text);
+  padding: 2px 8px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.tag:hover {
+  opacity: 0.9;
+}
+
+/* Media queries */
+@media (max-width: 768px) {
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .profile-stats {
+    gap: 15px;
+  }
+}
+
+/* Like button styles */
+.btn-outline-primary.active {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.btn-outline-primary.active i.fas.fa-heart {
+  color: #dc3545;
+  animation: heartPulse 0.3s ease;
+}
+
+.btn-outline-primary i.fas.fa-heart {
+  color: #dc3545;
+}
+
+/* Heart pulse animation */
+@keyframes heartPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Comment like button styles */
+.comment .btn.active i.fas.fa-heart {
+  color: #dc3545;
+  animation: heartPulse 0.3s ease;
+}
+
+/* Dark theme styles */
+[data-theme="dark"] {
+  --body-bg: #222;
+  --text-color: #f8f9fa;
+  --card-bg: #333;
+  --navbar-bg: #111;
+  --input-bg: #444;
+  --input-text: #fff;
+  --border-color: #555;
+  --comment-bg: #444;
+  --comment-reply-bg: #333;
+  --dropdown-bg: #333;
+  --dropdown-text: #f8f9fa;
+  --link-color: #4dabf7;
+  --jumbotron-bg: #333;
+  --muted-text: #adb5bd;
+  --card-footer-bg: #2a2a2a;
+  --list-group-bg: #333;
+  --list-group-border: #444;
+  --modal-bg: #333;
+  --modal-header-bg: #222;
+  --modal-footer-bg: #222;
+  --tag-bg: #4c566a;
+  --tag-text: #eceff4;
+  --pagination-bg: #333;
+  --pagination-text: #f8f9fa;
+  --pagination-border: #444;
+  --pagination-hover-bg: #444;
+  --pagination-active-bg: #0d6efd;
+  --pagination-active-text: #fff;
+  --pagination-disabled-bg: #222;
+  --pagination-disabled-text: #666;
+  --alert-info-bg: #0d3a58;
+  --alert-info-text: #8ed8f8;
+  --alert-info-border: #0c5384;
+  --btn-outline-primary-text: #4dabf7;
+  --btn-outline-primary-border: #4dabf7;
+  --btn-outline-primary-hover-bg: #1c3b5a;
+}
+
+[data-theme="light"] {
+  --body-bg: #f8f9fa;
+  --text-color: #212529;
+  --card-bg: #fff;
+  --navbar-bg: #0d6efd;
+  --input-bg: #fff;
+  --input-text: #212529;
+  --border-color: #dee2e6;
+  --comment-bg: #f8f9fa;
+  --comment-reply-bg: #f0f0f0;
+  --dropdown-bg: #fff;
+  --dropdown-text: #212529;
+  --link-color: #0d6efd;
+  --jumbotron-bg: #f8f9fa;
+  --muted-text: #6c757d;
+  --card-footer-bg: #f8f9fa;
+  --list-group-bg: #fff;
+  --list-group-border: #dee2e6;
+  --modal-bg: #fff;
+  --modal-header-bg: #f8f9fa;
+  --modal-footer-bg: #f8f9fa;
+  --tag-bg: #e9ecef;
+  --tag-text: #495057;
+  --pagination-bg: #fff;
+  --pagination-text: #0d6efd;
+  --pagination-border: #dee2e6;
+  --pagination-hover-bg: #e9ecef;
+  --pagination-active-bg: #0d6efd;
+  --pagination-active-text: #fff;
+  --pagination-disabled-bg: #fff;
+  --pagination-disabled-text: #6c757d;
+  --alert-info-bg: #cff4fc;
+  --alert-info-text: #055160;
+  --alert-info-border: #b6effb;
+  --btn-outline-primary-text: #0d6efd;
+  --btn-outline-primary-border: #0d6efd;
+  --btn-outline-primary-hover-bg: #e7f1ff;
+}
+
+body {
+  background-color: var(--body-bg);
+  color: var(--text-color);
+}
+
+.navbar {
+  background-color: var(--navbar-bg) !important;
+}
+
+.card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.form-control {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--border-color);
+}
+
+.comment {
+  background-color: var(--comment-bg);
+}
+
+.comment.reply {
+  background-color: var(--comment-reply-bg);
+}
+
+.dropdown-menu {
+  background-color: var(--dropdown-bg);
+}
+
+.dropdown-item {
+  color: var(--dropdown-text);
+}
+
+.dropdown-item:hover {
+  background-color: rgba(128, 128, 128, 0.2);
+}
+
+/* Theme toggle button */
+.theme-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .theme-toggle-btn .fa-sun {
+  display: inline-block;
+}
+
+[data-theme="dark"] .theme-toggle-btn .fa-moon {
+  display: none;
+}
+
+[data-theme="light"] .theme-toggle-btn .fa-sun {
+  display: none;
+}
+
+[data-theme="light"] .theme-toggle-btn .fa-moon {
+  display: inline-block;
+}
+
+/* Add jumbotron styles */
+.jumbotron {
+  background-color: var(--jumbotron-bg) !important;
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Override text-muted to use theme variable */
+.text-muted {
+  color: var(--muted-text) !important;
+}
+
+/* Card footer */
+.card-footer.bg-transparent {
+  background-color: var(--card-footer-bg) !important;
+}
+
+/* List group for profile page */
+.list-group-item {
+  background-color: var(--list-group-bg);
+  color: var(--text-color);
+  border-color: var(--list-group-border);
+}
+
+.list-group-flush .list-group-item {
+  background-color: var(--list-group-bg);
+  color: var(--text-color);
+  border-color: var(--list-group-border);
+}
+
+/* Modal styles for dark theme */
+.modal-content {
+  background-color: var(--modal-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.modal-header {
+  background-color: var(--modal-header-bg);
+  border-color: var(--border-color);
+}
+
+.modal-footer {
+  background-color: var(--modal-footer-bg);
+  border-color: var(--border-color);
+}
+
+/* Profile page specific styles */
+.card-header.bg-primary {
+  background-color: var(--navbar-bg) !important;
+}
+
+/* Fix for alerts in dark mode */
+.alert-danger {
+  color: #842029;
+}
+
+.alert-success {
+  color: #0f5132;
+}
+
+.alert-info {
+  background-color: var(--alert-info-bg);
+  color: var(--alert-info-text);
+  border-color: var(--alert-info-border);
+}
+
+/* Pagination for dark mode */
+.pagination .page-link {
+  background-color: var(--pagination-bg);
+  color: var(--pagination-text);
+  border-color: var(--pagination-border);
+}
+
+.pagination .page-link:hover {
+  background-color: var(--pagination-hover-bg);
+  border-color: var(--pagination-border);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--pagination-active-bg);
+  color: var(--pagination-active-text);
+  border-color: var(--pagination-active-bg);
+}
+
+.pagination .page-item.disabled .page-link {
+  background-color: var(--pagination-disabled-bg);
+  color: var(--pagination-disabled-text);
+}
+
+/* Explore page - filter buttons */
+.btn-outline-primary {
+  color: var(--btn-outline-primary-text);
+  border-color: var(--btn-outline-primary-border);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--btn-outline-primary-hover-bg);
+}
+
+/* Input group for search */
+.input-group .form-control {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--border-color);
+}
+
+/* Fix for spinner in dark mode */
+.spinner-border.text-primary {
+  color: var(--link-color) !important;
+}

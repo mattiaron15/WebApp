@@ -1,0 +1,28 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-md-8 mx-auto text-center">
+    <div class="card">
+      <div class="card-body">
+        <h1 class="display-1 text-danger mb-4"><i class="fas fa-exclamation-triangle"></i></h1>
+        <h2 class="card-title mb-4"><%= message %></h2>
+        <p class="lead">Something went wrong. Please try again or return to the home page.</p>
+        
+        <% if (error && error.status) { %>
+          <p class="text-muted">Status: <%= error.status %></p>
+        <% } %>
+        
+        <% if (process.env.NODE_ENV === 'development' && error && error.stack) { %>
+          <div class="mt-4 text-start">
+            <h5>Stack Trace:</h5>
+            <pre class="bg-light p-3 rounded"><%= error.stack %></pre>
+          </div>
+        <% } %>
+        
+        <a href="/" class="btn btn-primary mt-4">Return to Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %> 

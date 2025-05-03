@@ -1,0 +1,128 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-md-6 mx-auto">
+    <div class="card auth-card">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Accedi al tuo Account</h4>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-danger" id="error-alert" style="display: none;"></div>
+        
+        <form id="login-form">
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+          </div>
+          
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">Accedi</button>
+          </div>
+        </form>
+        
+        <div class="mt-3 text-center">
+          <p>Non hai un account? <a href="/register">Registrati qui</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('login-form');
+    const errorAlert = document.getElementById('error-alert');
+    
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = loginForm.email.value;
+      const password = loginForm.password.value;
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.token) {
+          // Memorizza il token 
+          localStorage.setItem('token', data.token);
+          
+          // Ottieni i dati dell'utente
+          try {
+            const userResponse = await fetch('/api/auth/me', {
+              headers: {
+                'Authorization': `Bearer ${data.token}`,
+                'x-auth-token': data.token
+              }
+            });
+            
+            const userData = await userResponse.json();
+            if (userResponse.ok && userData.user) {
+              // Assicurati che userData contenga l'ID utente
+              const userInfo = {
+                id: userData.user._id || userData.user.id,
+                username: userData.user.username,
+                email: userData.user.email,
+                profilePicture: userData.user.profilePicture,
+                bio: userData.user.bio,
+                isAdmin: userData.user.isAdmin || false
+              };
+              localStorage.setItem('user', JSON.stringify(userInfo));
+              console.log('Dati utente salvati:', userInfo);
+            } else {
+              // Crea un oggetto utente di base usando i dati disponibili
+              if (data.user) {
+                const userInfo = {
+                  id: data.user._id || data.user.id,
+                  username: data.user.username,
+                  email: data.user.email,
+                  isAdmin: data.user.isAdmin || false
+                };
+                localStorage.setItem('user', JSON.stringify(userInfo));
+                console.log('Dati utente di base salvati dalla risposta di login:', userInfo);
+              }
+            }
+          } catch (userError) {
+            console.error('Errore nel recupero dei dati utente:', userError);
+            // Crea un oggetto utente di base usando i dati disponibili
+            if (data.user) {
+              const userInfo = {
+                id: data.user._id || data.user.id,
+                username: data.user.username,
+                email: data.user.email,
+                isAdmin: data.user.isAdmin || false
+              };
+              localStorage.setItem('user', JSON.stringify(userInfo));
+              console.log('Dati utente di riserva salvati:', userInfo);
+            }
+          }
+          
+          // Reindirizza alla homepage
+          window.location.href = '/';
+        } else {
+          // Mostra messaggio di errore
+          errorAlert.textContent = data.msg || 'Accesso fallito. Riprova.';
+          errorAlert.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Errore di login:', error);
+        errorAlert.textContent = 'Si è verificato un errore. Riprova più tardi.';
+        errorAlert.style.display = 'block';
+      }
+    });
+  });
+</script>
+
+<%- include('partials/footer') %> 
