@@ -253,7 +253,7 @@ npm install
 npm run dev
 ```
 
-Il client sarà disponibile all'indirizzo [http://localhost:5173](http://localhost:5173)
+Il client sarà disponibile all'indirizzo [http://localhost:4000](http://localhost:4000)
 
 ## Integrazione con App_web
 
