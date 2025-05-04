@@ -217,21 +217,57 @@
           </div>
         `;
         
-        // Mostra le informazioni sull'autore
-        const authorContainer = document.getElementById('author-container');
-        authorContainer.innerHTML = `
-          <div class="d-flex flex-column align-items-center">
-            <img src="${post.author.profilePicture}" alt="${post.author.username}" class="rounded-circle mb-3" width="100" height="100">
-            <h5 class="mb-2">${post.author.username}</h5>
-            <p class="text-muted mb-3">${post.author.bio || 'Nessuna bio disponibile'}</p>
-            <button class="btn btn-sm btn-primary follow-btn" data-user-id="${post.author._id}" onclick="followUser('${post.author._id}')">
-              <i class="fas fa-user-plus"></i> Segui
-            </button>
-            <a href="/explore?author=${post.author._id}" class="btn btn-sm btn-outline-secondary mt-2">
-              Visualizza tutti i post
-            </a>
-          </div>
-        `;
+        // Recupera i dati dell'autore aggiornati direttamente dal database
+        try {
+          const authorResponse = await fetch(`/api/users/${post.author._id}`);
+          const authorData = await authorResponse.json();
+          
+          // Usa i dati dell'autore aggiornati se disponibili, altrimenti usa quelli del post
+          let authorInfo = post.author;
+          if (authorResponse.ok && authorData.success && authorData.data) {
+            authorInfo = {
+              ...post.author,
+              bio: authorData.data.bio,
+              profilePicture: authorData.data.profilePicture || post.author.profilePicture,
+              username: authorData.data.username || post.author.username
+            };
+            console.log('Author data updated from API:', authorInfo);
+          }
+          
+          // Mostra le informazioni sull'autore
+          const authorContainer = document.getElementById('author-container');
+          authorContainer.innerHTML = `
+            <div class="d-flex flex-column align-items-center">
+              <img src="${authorInfo.profilePicture}" alt="${authorInfo.username}" class="rounded-circle mb-3" width="100" height="100">
+              <h5 class="mb-2">${authorInfo.username}</h5>
+              <p class="text-muted mb-3">${authorInfo.bio && authorInfo.bio.trim() !== '' ? authorInfo.bio : 'Nessuna bio disponibile'}</p>
+              <button class="btn btn-sm btn-primary follow-btn" data-user-id="${post.author._id}" onclick="followUser('${post.author._id}')">
+                <i class="fas fa-user-plus"></i> Segui
+              </button>
+              <a href="/explore?author=${post.author._id}" class="btn btn-sm btn-outline-secondary mt-2">
+                Visualizza tutti i post di questo autore
+              </a>
+            </div>
+          `;
+        } catch (authorError) {
+          console.error('Errore nel recupero dati autore aggiornati:', authorError);
+          
+          // In caso di errore, usa i dati originali dell'autore dal post
+          const authorContainer = document.getElementById('author-container');
+          authorContainer.innerHTML = `
+            <div class="d-flex flex-column align-items-center">
+              <img src="${post.author.profilePicture}" alt="${post.author.username}" class="rounded-circle mb-3" width="100" height="100">
+              <h5 class="mb-2">${post.author.username}</h5>
+              <p class="text-muted mb-3">${post.author.bio && post.author.bio.trim() !== '' ? post.author.bio : 'Nessuna bio disponibile'}</p>
+              <button class="btn btn-sm btn-primary follow-btn" data-user-id="${post.author._id}" onclick="followUser('${post.author._id}')">
+                <i class="fas fa-user-plus"></i> Segui
+              </button>
+              <a href="/explore?author=${post.author._id}" class="btn btn-sm btn-outline-secondary mt-2">
+                Visualizza tutti i post
+              </a>
+            </div>
+          `;
+        }
         
         // Aggiungi il pulsante di eliminazione se l'utente è il proprietario
         // o hanno la stessa email (controllo anche tramite email per gestire ID diversi)

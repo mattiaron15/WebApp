@@ -1,1 +1,51 @@
-[]
+[{
+  "_id": {
+    "$oid": "681763d01a01d59be791204e"
+  },
+  "title": "Guerra Commerciale",
+  "content": "La guerra commerciale è un conflitto economico tra due o più paesi che si manifesta attraverso l'imposizione di tariffe doganali, restrizioni commerciali e altre misure protezionistiche.\n\nLe cause della guerra commerciale sono:\n\n- Protezionismo: la politica di proteggere le industrie nazionali attraverso l'imposizione di tariffe doganali e restrizioni commerciali.\n- Concorrenza sleale: l'accusa di concorrenza sleale da parte di un paese può portare all'imposizione di tariffe doganali e restrizioni commerciali.\n- Differenze economiche: le differenze economiche tra paesi, come ad esempio la differenza nei salari minimi o nelle norme ambientali, possono portare a conflitti commerciali.\n\nGli effetti della guerra commerciale sono:\n\n- Aumento dei prezzi: l'imposizione di tariffe doganali può portare a un aumento dei prezzi dei prodotti importati.\n- Riduzione del commercio: la guerra commerciale può portare a una riduzione del commercio internazionale e a una perdita di posti di lavoro.\n- Instabilità economica: la guerra commerciale può portare a un'aumentata instabilità economica e a una riduzione della fiducia degli investitori.\n\nAlcuni esempi di guerre commerciali sono:\n\n- Guerra commerciale tra Stati Uniti e Cina (2018-2020): la guerra commerciale è stata scatenata dall'imposizione di tariffe doganali da parte degli Stati Uniti sulla Cina e ha portato a una riduzione del commercio tra i due paesi.\n- Guerra commerciale tra Stati Uniti e Messico (2019): la guerra commerciale è stata scatenata dall'imposizione di tariffe doganali da parte degli Stati Uniti sul Messico e ha portato a una riduzione del commercio tra i due paesi.\n\nDibattito:\n\n\"La guerra commerciale: è una strategia efficace per proteggere l'economia nazionale o un'arma a doppio taglio che danneggia tutti i paesi coinvolti?\"",
+  "image": "https://media.istockphoto.com/id/1056780444/it/foto/guerra-commerciale-tra-stati-uniti-e-cina-usa-damerica-e-bandiere-cinesi-si-sono-schiantate.jpg?s=612x612&w=0&k=20&c=0Kg3w8Ior6SvVM1UGtatGSj26_TlDVUsO88a5j58C3k=",
+  "author": {
+    "$oid": "68138f1b5fc37f3514f725db"
+  },
+  "tags": [
+    "war"
+  ],
+  "likes": [],
+  "comments": [],
+  "shares": 0,
+  "views": 5,
+  "createdAt": {
+    "$date": "2025-05-04T12:55:44.175Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-04T13:41:00.866Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "681767001a01d59be791212f"
+  },
+  "title": "Le Nuove Schede Video NVIDIA: Prestazioni al Massimo, Pronte per il Futuro",
+  "content": "Il 2025 si apre con un’ondata di innovazione nel mondo del gaming e del computing grazie alle nuove schede video NVIDIA della serie RTX 5000. Dopo mesi di attesa e speculazioni, l’azienda californiana ha finalmente alzato il sipario su una generazione di GPU che promette di ridefinire il concetto di prestazioni grafiche.\n\nArchitettura Blackwell: il cuore pulsante\nAlla base delle nuove RTX 5080 e RTX 5090 c’è l’architettura Blackwell, evoluzione diretta di Ada Lovelace. Blackwell introduce miglioramenti significativi nel ray tracing, nella gestione dell’intelligenza artificiale e nella resa delle texture in tempo reale. I core RT di nuova generazione offrono una resa visiva senza precedenti, con ambientazioni fotorealistiche e un frame rate stabile anche nei titoli più esigenti.\n\nDLSS 4: l’AI che cambia le regole\nCon queste nuove GPU arriva anche il DLSS 4, il sistema di super campionamento basato sull’intelligenza artificiale. NVIDIA ha spinto ancora oltre l’integrazione dell’AI nel gaming, permettendo di ottenere qualità visiva altissima anche a risoluzioni elevate, con un impatto minimo sulle prestazioni. In alcuni casi, si parla di frame rate raddoppiati rispetto alla generazione precedente.\n\nEfficienza energetica e raffreddamento\nUn altro punto forte è la maggiore efficienza energetica. Nonostante la potenza extra, le nuove RTX sono state progettate per consumare meno rispetto alle precedenti top di gamma. I sistemi di raffreddamento, ora ancora più silenziosi e performanti, permettono di mantenere le temperature sotto controllo anche durante le sessioni di gioco più intense.\n\nPer chi sono pensate?\nLe nuove schede NVIDIA sono pensate per gamer esigenti, creatori di contenuti e professionisti che lavorano con applicazioni grafiche avanzate o modelli di intelligenza artificiale. La potenza della serie 5000 apre nuove possibilità anche nel campo del rendering 3D, della realtà virtuale e dello sviluppo videoludico.\n\nConclusioni\nLe nuove GPU NVIDIA non sono solo un upgrade: rappresentano un vero salto generazionale. Che tu sia un gamer competitivo, uno streamer o un professionista del settore, la serie RTX 5000 è pronta ad accompagnarti nel futuro dell’elaborazione grafica.",
+  "image": "https://www.nvidia.com/content/dam/en-zz/Solutions/geforce/graphic-cards/50-series/rtx-5090/geforce-rtx-5090-learn-more-og-1200x630.jpg",
+  "author": {
+    "$oid": "68138f1b5fc37f3514f725db"
+  },
+  "tags": [
+    "technology",
+    "science"
+  ],
+  "likes": [],
+  "comments": [],
+  "shares": 0,
+  "views": 21,
+  "createdAt": {
+    "$date": "2025-05-04T13:09:20.406Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-04T13:35:22.681Z"
+  },
+  "__v": 0
+}]

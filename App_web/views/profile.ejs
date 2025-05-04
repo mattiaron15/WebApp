@@ -136,16 +136,31 @@
         <form id="change-password-form">
           <div class="mb-3">
             <label for="current-password" class="form-label">Password Attuale</label>
-            <input type="password" class="form-control" id="current-password" name="currentPassword" required>
+            <div class="input-group">
+              <input type="password" class="form-control" id="current-password" name="currentPassword" required>
+              <button class="btn btn-outline-secondary" type="button" id="toggle-current-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
           </div>
           <div class="mb-3">
             <label for="new-password" class="form-label">Nuova Password</label>
-            <input type="password" class="form-control" id="new-password" name="newPassword" required>
+            <div class="input-group">
+              <input type="password" class="form-control" id="new-password" name="newPassword" required>
+              <button class="btn btn-outline-secondary" type="button" id="toggle-new-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
             <small class="text-muted">La password deve essere di almeno 6 caratteri.</small>
           </div>
           <div class="mb-3">
             <label for="confirm-password" class="form-label">Conferma Nuova Password</label>
-            <input type="password" class="form-control" id="confirm-password" name="confirmPassword" required>
+            <div class="input-group">
+              <input type="password" class="form-control" id="confirm-password" name="confirmPassword" required>
+              <button class="btn btn-outline-secondary" type="button" id="toggle-confirm-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -173,6 +188,16 @@
       return;
     }
     
+    // Verifica iniziale dello stato admin dal localStorage
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('Initial admin check from localStorage:', storedUser.isAdmin);
+      
+      // Non è più necessario nascondere l'elemento, poiché lo aggiungeremo solo se l'utente è admin
+    } catch (e) {
+      console.error('Error checking initial admin status:', e);
+    }
+    
     try {
       console.log('User is logged in, retrieving user data');
       
@@ -196,6 +221,10 @@
         return;
       }
       
+      // Stampa i dati completi dell'utente per debug
+      console.log('Complete user data received from API:', userResult.user);
+      console.log('isAdmin value in API response:', userResult.user.isAdmin);
+      
       // Estrai le informazioni dell'utente dall'API
       const apiUser = userResult.user;
       console.log('User data from API:', apiUser);
@@ -212,14 +241,14 @@
       
       console.log('Using user ID from API:', currentUserId);
       
-      // Aggiorna localStorage con i dati più recenti
+      // Aggiorna localStorage con i dati più recenti e assicura che isAdmin sia un valore booleano
       const userInfo = {
         id: currentUserId,
         username: apiUser.username,
         email: apiUser.email,
         bio: apiUser.bio || '',
         profilePicture: apiUser.profilePicture || 'default-profile.jpg',
-        isAdmin: apiUser.isAdmin === true
+        isAdmin: apiUser.isAdmin === true // Forza la conversione a un booleano
       };
       
       localStorage.setItem('user', JSON.stringify(userInfo));
@@ -277,6 +306,34 @@
       changePasswordModal.show();
     });
     
+    // Gestione toggle password
+    document.getElementById('toggle-current-password').addEventListener('click', function() {
+      const passwordInput = document.getElementById('current-password');
+      togglePasswordVisibility(passwordInput, this);
+    });
+    
+    document.getElementById('toggle-new-password').addEventListener('click', function() {
+      const passwordInput = document.getElementById('new-password');
+      togglePasswordVisibility(passwordInput, this);
+    });
+    
+    document.getElementById('toggle-confirm-password').addEventListener('click', function() {
+      const passwordInput = document.getElementById('confirm-password');
+      togglePasswordVisibility(passwordInput, this);
+    });
+    
+    // Funzione per alternare la visibilità della password
+    function togglePasswordVisibility(inputElement, buttonElement) {
+      // Cambia il tipo dell'input tra password e text
+      const type = inputElement.getAttribute('type') === 'password' ? 'text' : 'password';
+      inputElement.setAttribute('type', type);
+      
+      // Cambia l'icona del pulsante
+      const eyeIcon = buttonElement.querySelector('i');
+      eyeIcon.classList.toggle('fa-eye');
+      eyeIcon.classList.toggle('fa-eye-slash');
+    }
+    
     // Aggiungo event listener per il pulsante di salvataggio della nuova password
     document.getElementById('save-password-btn').addEventListener('click', async () => {
       await changePassword();
@@ -322,6 +379,34 @@
         
         if (user.profilePicture && user.profilePicture !== 'default-profile.jpg') {
           document.getElementById('profile-image').src = user.profilePicture;
+        }
+        
+        // Gestione dello stato admin
+        console.log('isAdmin check - Raw value:', user.isAdmin);
+        console.log('isAdmin check - Type:', typeof user.isAdmin);
+        console.log('isAdmin check - Strict comparison:', user.isAdmin === true);
+        
+        // Rimuovi qualsiasi elemento admin-status esistente per sicurezza
+        const existingAdminStatus = document.getElementById('admin-status');
+        if (existingAdminStatus) {
+          existingAdminStatus.remove();
+        }
+        
+        // Aggiungi l'elemento admin-status SOLO se l'utente è effettivamente admin
+        if (user.isAdmin === true) {
+          console.log('User IS admin, adding admin badge');
+          const adminStatusElement = document.createElement('li');
+          adminStatusElement.id = 'admin-status';
+          adminStatusElement.className = 'list-group-item d-flex justify-content-between align-items-center';
+          adminStatusElement.innerHTML = `
+            Stato
+            <span class="badge bg-danger">Account Admin</span>
+          `;
+          
+          // Aggiungi l'elemento alla lista
+          document.querySelector('.list-group-flush').appendChild(adminStatusElement);
+        } else {
+          console.log('User is NOT admin, no admin badge will be displayed');
         }
         
         // Update followers/following counts

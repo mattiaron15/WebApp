@@ -17,7 +17,12 @@
           
           <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required>
+            <div class="input-group">
+              <input type="password" class="form-control" id="password" name="password" required>
+              <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
           </div>
           
           <div class="d-grid">
@@ -37,6 +42,21 @@
   document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const errorAlert = document.getElementById('error-alert');
+    
+    // Gestione toggle password
+    const togglePassword = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+    
+    togglePassword.addEventListener('click', function() {
+      // Cambia il tipo dell'input tra password e text
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      
+      // Cambia l'icona del pulsante
+      const eyeIcon = this.querySelector('i');
+      eyeIcon.classList.toggle('fa-eye');
+      eyeIcon.classList.toggle('fa-eye-slash');
+    });
     
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
