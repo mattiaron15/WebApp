@@ -88,6 +88,34 @@
   let tagFilter = '';
   let authorFilter = '';
   
+  // Funzione per tradurre i tag in italiano
+  const translateTag = (tag) => {
+    const translations = {
+      'technology': 'tecnologia',
+      'science': 'scienza',
+      'art': 'arte',
+      'lifestyle': 'lifestyle',
+      'travel': 'viaggi',
+      'food': 'cibo',
+      'war': 'guerre'
+    };
+    return translations[tag] || tag;
+  };
+
+  // Funzione per tradurre i tag dall'italiano all'inglese
+  const translateTagToEnglish = (tag) => {
+    const reverseTranslations = {
+      'tecnologia': 'technology',
+      'scienza': 'science',
+      'arte': 'art',
+      'lifestyle': 'lifestyle',
+      'viaggi': 'travel',
+      'cibo': 'food',
+      'guerre': 'war'
+    };
+    return reverseTranslations[tag] || tag;
+  };
+  
   document.addEventListener('DOMContentLoaded', () => {
     // Analizza i parametri URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -102,34 +130,38 @@
     const searchForm = document.querySelector('form');
     searchForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      searchQuery = document.querySelector('input[name="query"]').value;
-      tagFilter = ''; // Cancella il filtro tag durante la ricerca
+      let query = document.querySelector('input[name="query"]').value;
+      
+      // Controlla se la query è un tag in italiano
+      const possibleTag = query.toLowerCase().replace('#', '').trim();
+      const englishTag = translateTagToEnglish(possibleTag);
+      
+      // Se la query è un tag in italiano, usa il tag inglese
+      if (englishTag !== possibleTag) {
+        tagFilter = englishTag;
+        searchQuery = '';
+      } else {
+        searchQuery = query;
+        tagFilter = '';
+      }
+      
       authorFilter = ''; // Cancella il filtro autore durante la ricerca
       
       // Aggiorna l'URL senza ricaricare
       const url = new URL(window.location);
-      url.searchParams.set('query', searchQuery);
-      url.searchParams.delete('tag');
+      if (tagFilter) {
+        url.searchParams.set('tag', tagFilter);
+        url.searchParams.delete('query');
+      } else {
+        url.searchParams.set('query', searchQuery);
+        url.searchParams.delete('tag');
+      }
       url.searchParams.delete('author');
       window.history.pushState({}, '', url);
       
       loadPosts(1);
     });
   });
-  
-  // Funzione per tradurre i tag in italiano
-  const translateTag = (tag) => {
-    const translations = {
-      'technology': 'tecnologia',
-      'science': 'scienza',
-      'art': 'arte',
-      'lifestyle': 'lifestyle',
-      'travel': 'viaggi',
-      'food': 'cibo',
-      'war': 'guerre'
-    };
-    return translations[tag] || tag;
-  };
   
   const loadPosts = async (page) => {
     try {
